@@ -21,7 +21,8 @@ type JobManager struct {
 	lease  clientv3.Lease
 }
 
-func (jobManager *JobManager) SvaeJob(job *common.Job) (old *common.Job, err error) {
+//保存任务
+func (jobManager *JobManager) SaveJob(job *common.Job) (oldJob *common.Job, err error) {
 	//任务的key
 	jobKey := "/cron/jobs/" + job.Name
 	//反序列化
@@ -35,7 +36,6 @@ func (jobManager *JobManager) SvaeJob(job *common.Job) (old *common.Job, err err
 		return
 	}
 	if putResponse.PrevKv != nil {
-		oldJob := new(common.Job)
 		if err = json.Unmarshal(putResponse.PrevKv.Value, oldJob); err != nil {
 			return
 		}
@@ -44,6 +44,49 @@ func (jobManager *JobManager) SvaeJob(job *common.Job) (old *common.Job, err err
 	return
 }
 
+//删除任务
+func (jobManager *JobManager) DeleteJob(jobName string) (oldJob *common.Job, err error) {
+	//得到key
+	jobKey := "/cron/jobs/" + jobName
+
+	//从etcd中删除key
+	deleteRespoonse, err := jobManager.kv.Delete(context.TODO(), jobKey, clientv3.WithPrevKV())
+	if err != nil {
+		return
+	}
+
+	//返回被删除的任务信息
+	if len(deleteRespoonse.PrevKvs) != 0 {
+
+		if err = json.Unmarshal(deleteRespoonse.PrevKvs[0].Value, oldJob); err != nil {
+			err = nil
+			return
+		}
+	}
+
+	return
+}
+
+//列出所有任务
+func (jobManager *JobManager) ListJob() (jobList []*common.Job, err error) {
+	job := new(common.Job)
+	jobList = make([]*common.Job, 0)
+	directory := "/cron/jobs"
+	getResponse, err := jobManager.kv.Get(context.TODO(), directory, clientv3.WithPrefix())
+	if err != nil {
+		return
+	}
+	for _, kvPair := range getResponse.Kvs {
+		if err = json.Unmarshal(kvPair.Value, job); err != nil {
+			err = nil
+			continue
+		}
+		jobList = append(jobList, job)
+	}
+	return
+}
+
+//初始化任务管理器
 func InitJobManager() (err error) {
 	config := clientv3.Config{
 		Endpoints:   G_config.ETCDEndPoints,

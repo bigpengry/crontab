@@ -47,7 +47,7 @@ func hanleJobSave(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//4.保存到ETCD
-	oldJob, err := G_jobManager.SvaeJob(job)
+	oldJob, err := G_jobManager.SaveJob(job)
 	if err != nil {
 		resp.ErrorType = -1
 		resp.Message = err.Error()
@@ -69,11 +69,50 @@ func hanleJobSave(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+//删除任务接口
+func handleJobDelete(w http.ResponseWriter, r *http.Request) {
+	resp := new(common.Response)
+	if err := r.ParseForm(); err != nil {
+		resp.ErrorType = -1
+		resp.Message = err.Error()
+		byte, err := resp.ResponseMarshal()
+		if err == nil {
+			w.Write(byte)
+		}
+		return
+	}
+	//获取任务名
+	jobName := r.PostForm.Get("name")
+	oldJob, err := G_jobManager.DeleteJob(jobName)
+	if err != nil {
+		resp.ErrorType = -1
+		resp.Message = err.Error()
+		byte, err := resp.ResponseMarshal()
+		if err == nil {
+			w.Write(byte)
+		}
+		return
+	}
+	resp.ErrorType = 0
+	resp.Message = "success"
+	resp.Data = oldJob
+	byte, err := resp.ResponseMarshal()
+	if err == nil {
+		w.Write(byte)
+	}
+
+}
+func handleJobList(w http.ResponseWriter, r *http.Request) {
+
+}
+
 //初始化服务
 func InitAPIServer() (err error) {
 	//配置路由
 	mux := &http.ServeMux{}
 	mux.HandleFunc("/job/save", hanleJobSave)
+	mux.HandleFunc("/job/delete", handleJobDelete)
+	mux.HandleFunc("/job/list", handleJobList)
 
 	//启动TCP监听
 	listener, err := net.Listen("tcp", ":"+strconv.Itoa(G_config.APIPort))
