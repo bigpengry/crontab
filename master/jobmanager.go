@@ -47,7 +47,7 @@ func (jobManager *JobManager) SaveJob(job *common.Job) (oldJob *common.Job, err 
 //删除任务
 func (jobManager *JobManager) DeleteJob(jobName string) (oldJob *common.Job, err error) {
 	//得到key
-	jobKey := "/cron/jobs/" + jobName
+	jobKey := common.JOB_SAVE_DIR + jobName
 
 	//从etcd中删除key
 	deleteRespoonse, err := jobManager.kv.Delete(context.TODO(), jobKey, clientv3.WithPrevKV())
@@ -71,7 +71,7 @@ func (jobManager *JobManager) DeleteJob(jobName string) (oldJob *common.Job, err
 func (jobManager *JobManager) ListJob() (jobList []*common.Job, err error) {
 	job := new(common.Job)
 	jobList = make([]*common.Job, 0)
-	directory := "/cron/jobs"
+	directory := common.JOB_SAVE_DIR
 	getResponse, err := jobManager.kv.Get(context.TODO(), directory, clientv3.WithPrefix())
 	if err != nil {
 		return
@@ -82,6 +82,27 @@ func (jobManager *JobManager) ListJob() (jobList []*common.Job, err error) {
 			continue
 		}
 		jobList = append(jobList, job)
+	}
+	return
+}
+
+//杀死任务
+func (jobManager *JobManager) KillJob(jobName string) (err error) {
+	//获取key
+	killerKey := common.JOB_KILLER_DIR + jobName
+	//创建租约
+	resp, err := jobManager.lease.Grant(context.TODO(), 1)
+	if err != nil {
+		return
+	}
+
+	//或缺leaseID
+	leaseID := resp.ID
+
+	//设置标记
+	_, err = jobManager.kv.Put(context.TODO(), killerKey, "", clientv3.WithLease(leaseID))
+	if err != nil {
+		return
 	}
 	return
 }

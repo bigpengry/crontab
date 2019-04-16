@@ -102,7 +102,58 @@ func handleJobDelete(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+//任务列表接口
 func handleJobList(w http.ResponseWriter, r *http.Request) {
+	resp := new(common.Response)
+	//获取任务列表
+	jobList, err := G_jobManager.ListJob()
+	if err != nil {
+		//错误处理
+		return
+	}
+	resp.ErrorType = 0
+	resp.Message = "success"
+	resp.Data = jobList
+	byte, err := resp.ResponseMarshal()
+	if err == nil {
+		w.Write(byte)
+	}
+
+}
+
+//强制杀死任务
+func handleJobKill(w http.ResponseWriter, r *http.Request) {
+	resp := new(common.Response)
+	if err := r.ParseForm(); err != nil {
+		resp.ErrorType = -1
+		resp.Message = err.Error()
+		byte, err := resp.ResponseMarshal()
+		if err == nil {
+			w.Write(byte)
+		}
+		return
+	}
+
+	//获取任务名称
+	jobName := r.PostForm.Get("name")
+
+	if err := G_jobManager.KillJob(jobName); err != nil {
+		resp.ErrorType = -1
+		resp.Message = err.Error()
+		byte, err := resp.ResponseMarshal()
+		if err == nil {
+			w.Write(byte)
+		}
+		return
+
+	}
+	resp.ErrorType = 0
+	resp.Message = "success"
+	byte, err := resp.ResponseMarshal()
+	if err == nil {
+		w.Write(byte)
+	}
 
 }
 
@@ -113,6 +164,9 @@ func InitAPIServer() (err error) {
 	mux.HandleFunc("/job/save", hanleJobSave)
 	mux.HandleFunc("/job/delete", handleJobDelete)
 	mux.HandleFunc("/job/list", handleJobList)
+	mux.HandleFunc("/job/kill", handleJobKill)
+	//静态文件目录
+	staticDir := http.Dir("./webroot")
 
 	//启动TCP监听
 	listener, err := net.Listen("tcp", ":"+strconv.Itoa(G_config.APIPort))
