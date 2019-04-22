@@ -241,7 +241,7 @@
                     dataType: 'json',
                     data: {name: jobName},
                     success: function(resp) {
-                        if (resp.errno != 0) {
+                        if (resp.errorType != 0) {
                             return
                         }
                         // 遍历日志
@@ -249,13 +249,13 @@
                         for (var i = 0; i < logList.length; ++i) {
                             var log = logList[i]
                             var tr = $('<tr>')
-                            tr.append($('<td>').html(log.command))
-                            tr.append($('<td>').html(log.err))
-                            tr.append($('<td>').html(log.output))
-                            tr.append($('<td>').html(timeFormat(log.planTime)))
-                            tr.append($('<td>').html(timeFormat(log.scheduleTime)))
-                            tr.append($('<td>').html(timeFormat(log.startTime)))
-                            tr.append($('<td>').html(timeFormat(log.endTime)))
+                            tr.append($('<td>').html(log.Command))
+                            tr.append($('<td>').html(log.Error))
+                            tr.append($('<td>').html(log.Output))
+                            tr.append($('<td>').html(timeFormat(log.ScheduleTime)))
+                            tr.append($('<td>').html(timeFormat(log.ExecuteTime)))
+                            tr.append($('<td>').html(timeFormat(log.StartTime)))
+                            tr.append($('<td>').html(timeFormat(log.EndTime)))
                             console.log(tr)
                             $('#log-list tbody').append(tr)
                         }
@@ -276,7 +276,7 @@
                     url: '/worker/list',
                     dataType: 'json',
                     success: function(resp) {
-                        if (resp.errno != 0) {
+                        if (resp.errorType != 0) {
                             return
                         }
 

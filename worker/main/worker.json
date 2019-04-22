@@ -1,13 +1,4 @@
 {
-  "API接口服务端口": "提供增删改查服务",
-  "APIPort": 9090,
-
-  "API接口读超时": "单位是毫秒",
-  "APIReadTimeOut": 5000,
-
-  "API接口写超时": "单位是毫秒",
-  "APIWriteTimeOut": 5000,
-
   "etcd的集群列表": "配置多个，避免单点故障",
   "etcdEndpoints": ["xxx.xxx.xxx.xxx:2379"],
 
@@ -20,6 +11,9 @@
   "mongodb的连接超时": "单位毫秒",
   "mongodbConnectTimeOut": 5000,
 
-  "web页面根目录":"静态页面，前后端分离开发",
-  "webroot":"./webroot"
+  "日志缓冲区大小":"提高性能，当缓冲区满，日志一次性发送到服务器",
+  "logBufferSize": 100,
+
+  "日志自动提交超时": "防止任务量过小，长时间未填满缓冲区，无法发送日志",
+  "logCommitTimeOut":1000
 }

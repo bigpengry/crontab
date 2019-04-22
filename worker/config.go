@@ -1,4 +1,4 @@
-package master
+package worker
 
 import (
 	"encoding/json"
@@ -12,14 +12,12 @@ var (
 
 // Config 配置文件对象
 type Config struct {
-	APIPort               int      `json:"APIPort"`
-	APIReadTimeOut        int      `json:"APIReadTimeOut"`
-	APIWriteTimeOut       int      `json:"APIWriteTimeOut"`
 	ETCDEndPoints         []string `json:"etcdEndPoints"`
 	ETCDDialTimeOut       int      `json:"etcdDialTimeOut"`
 	MongoDBURI            string   `json:"mongodbURI“`
 	MongoDBConnectTimeOut int      `json:"mongodbConnectTimeOut"`
-	WebRoot               string   `json:"webroot"`
+	LogBufferSize         int      `json:"logBufferSize"`
+	LogCommitTimeOut      int      `json:"logCommitTimeOut"`
 }
 
 // InitConfig 加载配置文件

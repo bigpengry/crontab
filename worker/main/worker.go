@@ -6,12 +6,12 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/bigpengry/crontab/master"
+	"github.com/bigpengry/crontab/worker"
 )
 
 var (
-	err        error
-	configPath string
+	err      error
+	confPath string
 )
 
 // initEnv 初始化线程数
@@ -19,9 +19,11 @@ func initEnv() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 }
 
-// initArgs 加载配置文件路径
+// initArgs 解析命令行参数
 func initArgs() {
-	flag.StringVar(&configPath, "config", "./master.json", "指定master.json")
+	// worker -config ./worker.json
+	// worker -h
+	flag.StringVar(&confPath, "config", "./worker.json", "指定worker.json")
 	flag.Parse()
 }
 
@@ -32,33 +34,30 @@ func main() {
 	// 初始化线程
 	initEnv()
 	// 加载配置
-	if err = master.InitConfig(configPath); err != nil {
+	if err = worker.InitConfig(confPath); err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	if err = master.InitLogManager(); err != nil {
+	if err = worker.InitScheduler(); err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	if err = master.InitWorkerManager(); err != nil {
+	if err = worker.InitLogSink(); err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	// 初始化任务管理器
-	if err = master.InitJobManager(); err != nil {
+	if err = worker.InitJobManager(); err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	// 启动HTTP服务
-	if err = master.InitHTTPServer(); err != nil {
+	if err = worker.InitResister(); err != nil {
 		fmt.Println(err)
 		return
 	}
-
 	for {
 		time.Sleep(1 * time.Second)
 	}
